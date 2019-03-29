@@ -110,8 +110,12 @@ I would guess that for every historic data, the brush store the time for each ar
 * * uint8[]: array of samples for additional feature, all zeroes (does not count for the score)
 * * uint16: unknown, always {0x00, 0x00}
 * 0x03: Set date/time, tx size=0x0c, format:
-* * uint16[3]: timestamp (?), unknown format
-* * uint16[3]: unknown, all zeroes 
+* * uint32: UNIX timestamp in seconds
+* * uint4: Timezone (apparently, +x for timezones east of GMT, 15-x for timezones west of GMT)
+* * uint4: unknown, often zero but i've seen 8
+* * uint8: unknown, maybe flags
+* * uint32: timezone positive/negative (0x000000 if positive, 0xffffff if negative)
+* * uint32: uknown, always 0x000000 it seems
 * 0x04: Seemingly unused
 * 0x05: Get battery level, tx size=0x00, return format:
 * * uint8: battery percentage
@@ -142,8 +146,10 @@ I would guess that for every historic data, the brush store the time for each ar
 ## TODO
 
 * Understand what the uint32 in every UART command is
+* * Seems like a weird checksum, apparently, just applying known values works, but need more research on that
 * * Seems time related, it only increase. With commands with size>0x01, it increases at the response too
-* Understand the timestamp format for command 0x03 (and return of command 0x02)
+* Understand the timezone format for command 0x03 (and return of command 0x02)
 * See what command 0x04 does
+* See what's the data read from char 0x0004 after the auth
 * * Never seen it, seemingly unused...
 * Understand what **exactly** is the parameter of command 0x09
