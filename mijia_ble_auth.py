@@ -27,20 +27,23 @@ class login:
 
     def init_ekey(self, challenge):
         tick = encrypt(self.token, challenge)
-        self.ekey = bytes(a ^ b for a, b in zip(token[0:4], tick[0:4]))
+        self.ekey = bytearray(self.token)
+        for i in range(0, 3):
+            self.ekey[i] ^= tick[i]
 
     def get_response(self, challenge):
         self.init_ekey(challenge)
-        return encrypt(self.ekey, b'\x93\xbf\xac\x09')
+        return encrypt(self.ekey, b'\x09\xac\xbf\x93')
 
     def check_confirmation(self, confirmation):
-        return encrypt(self.ekey, confirmation)[0:4] == b'\x36\x9a\x58\xc9'
+        return encrypt(self.ekey, confirmation)[0:4] == b'\xc9\x58\x9a\x36'
 
 class register:
     def __init__(mac, productid):
-        self.mac = mac
+        # The mac address is inverted
+        self.mac = mac[::-1]
         self.productid = productid
-        self.token = bytearray(random.getrandbits(8) for _ in range(size))
+        self.token = bytearray(random.getrandbits(8) for _ in range(12))
 
     def mix_a(self):
         return bytes([self.mac[0], self.mac[2], self.mac[5], (self.productid & 0xff), (self.productid & 0xff), self.mac[4], self.mac[5], self.mac[1]])
@@ -58,4 +61,4 @@ class register:
         return self.token == encrypt(self.mix_b(), encrypt(self.mix_a(), confirmation))
 
     def get_end(self):
-        return encrypt(self.token, b'\xfa\x54\xab\x92')
+        return encrypt(self.token, b'\x92\xab\x54\xfa')

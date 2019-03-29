@@ -27,24 +27,24 @@ Check `devices_list.csv`
 
 * Note: tick lenght is always 4 bytes!
 * Enable notifications for the token characteristic && check response
-* Send `session_start` ('\xCD\x43\xBC\x00') to the event characteristic
+* Send `session_start` ('\x00\xbc\x43\xcd') to the event characteristic
 * Should receive some data ('challenge') in a notify from the token characteristic
 * Compute 'tick' = encrypt(token, challenge)
-* Compute encryption key = token[0:4] ^ tick[0:4]
-* `session_end` = '\x93\xBF\xAC\x09'
+* Compute encryption key = token with it's 4 first bytes XORed to the first 4 bytes of tick
+* `session_end` = '\x09\xac\xbf\x93'
 * Send challenge response (= encrypt(encryption key, `session_end`))
 * Should receive a confirmation (`confirmmation`) in a notify from token characteristic
-* To confirm, compare '\x36\x9A\x58\xC9' and encrypt(encryption key, confirmation)[0:4]
+* To confirm, compare '\xc9\x58\x9a\x36' and encrypt(encryption key, confirmation)[0:4]
 
 ## Register protocol
 
 * Enable notifications for the token characteristic && check reponse
-* Send `session_start` ('\xDE\x85\xCA\x90') to the event characteristic
+* Send `session_start` ('\x90\xca\x85\xde') to the event characteristic
 * Create a `token` (see "Generate token" below)
 * Write the result of `encrypt(mixA(mac_address, product_id), token)` to the token characteristic
 * Should receive some data ('confirmation') in a notify from the token characreristic
 * `token` should be equal to the result of `encrypt(mixB(mac_address, product_id), encrypt(mixA(mac_address, product_id), confirmation))`, if it's the case, continue, else, return an error
-* `session_end` = '\xFA\x54\xAB\x92'
+* `session_end` = '\x92\xab\x54\xfa'
 * Send the result of `encrypt(token, session_end)` to the token characteristic to confirm the registration
 
 ## Generate token
