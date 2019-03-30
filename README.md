@@ -19,7 +19,7 @@ If you have a xiaomi ecosystem device and did reverse engineer it, feel free to 
 
 | Device name                  | Device ID                  | Documentation                                      | Status             |
 |------------------------------|----------------------------|----------------------------------------------------|--------------------|
-| Mi Body Composition Scale    | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.v2.md)              | Mostly documented  |
+| Mi Body Composition Scale    | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.scale2.md)          | Mostly documented  |
 | Mi toothbrush                | `soocare.toothbrush.m1`    | [Doc](doc/devices/soocare.toothbrush.m1.md)        | Mostly documented  |
 | Yeelight bedside lamp        | `yeelight.light.ble1`      | [Doc](doc/devices/yeelight.light.ble1.md)          | TODO               |
 | Mi Kettle V1                 | `yunmi.kettle.v1`          | [Doc](doc/devices/yunmi.kettle.v1.md)              | TODO               |
