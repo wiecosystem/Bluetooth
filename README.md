@@ -17,15 +17,15 @@ Xiaomi is known to share it's logistics division with it's sub-OEMs, and also it
 
 If you have a xiaomi ecosystem device and did reverse engineer it, feel free to contribute. For now, for obvious reasons, i'll focus on some devices i already own:
 
-| Device name                  | Device ID                  | Documentation                                      |
-|------------------------------|----------------------------|----------------------------------------------------|
-| Mi Body Composition Scale    | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.v2.md)              |
-| Mi toothbrush                | `soocare.toothbrush.m1`    | [Doc](doc.devices/soocare.toothbrush.m1.md)        |
-| Yeelight bedside lamp        | `yeelight.light.ble1`      | [Doc](doc.devices/yeelight.light.ble1.md)          |
-| Mi Kettle V1                 | `yunmi.kettle.v1`          | [Doc](doc.devices/yunmi.kettle.v1.md)              |
-| Temperature/Humidity sensor  | `cleargrass.sensor_ht.dk1` | [Doc](doc.devices/cleargrass.sensor_ht.dk1.md)     |
-| Flora plant monitor          | `hhcc.plantmonitor.v1`     | [Doc](doc.devices/hhcc.plantmonitor.v1.md)         |
-| Mi Band 1                    | `xiaomi.watch.band1        | [Doc](doc.devices/xiaomi.watch.band1.md)           |
+| Device name                  | Device ID                  | Documentation                                      | Status             |
+|------------------------------|----------------------------|----------------------------------------------------|--------------------|
+| Mi Body Composition Scale    | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.v2.md)              | Mostly documented  |
+| Mi toothbrush                | `soocare.toothbrush.m1`    | [Doc](doc.devices/soocare.toothbrush.m1.md)        | Mostly documented  |
+| Yeelight bedside lamp        | `yeelight.light.ble1`      | [Doc](doc.devices/yeelight.light.ble1.md)          | TODO               |
+| Mi Kettle V1                 | `yunmi.kettle.v1`          | [Doc](doc.devices/yunmi.kettle.v1.md)              | TODO               |
+| Temperature/Humidity sensor  | `cleargrass.sensor_ht.dk1` | [Doc](doc.devices/cleargrass.sensor_ht.dk1.md)     | TODO               |
+| Flora plant monitor          | `hhcc.plantmonitor.v1`     | [Doc](doc.devices/hhcc.plantmonitor.v1.md)         | TODO               |
+| Mi Band 1                    | `xiaomi.watch.band1        | [Doc](doc.devices/xiaomi.watch.band1.md)           | TODO               |
 
 \* Not sure about this one, it isn't in mi home, but only in mi fit
 
