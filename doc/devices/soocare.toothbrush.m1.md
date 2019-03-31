@@ -90,7 +90,8 @@ I would guess that for every historic data, the brush store the time for each ar
 * The format for commands is:
 * * uint16: id of the command
 * * uint16: size of the data
-* * uint32: unknown (seems time related)
+* * uint16: TX number since init (the device doesn't seems to bother checking that)
+* * uint16: CRC16 (CCITT-FALSE algorithm) of the first 6 bytes
 * * uint8[size]: data
 * "Set" commands receive an acknowledge with size=0x01 and data=0x00
 * * The unknown uint32 is updated when the command was sent with size>0x01
@@ -112,11 +113,12 @@ I would guess that for every historic data, the brush store the time for each ar
 * 0x03: Set date/time, tx size=0x0c, format:
 * * uint32: UNIX timestamp in seconds
 * * uint4: Timezone (apparently, +x for timezones east of GMT, 15-x for timezones west of GMT)
-* * uint4: unknown, often zero but i've seen 8
-* * uint8: unknown, maybe flags
-* * uint32: timezone positive/negative (0x000000 if positive, 0xffffff if negative)
+* * uint4: Fractions of hours flags bit 1 is +30, bit 2 is +15, bits 3 and 4 are unused
+* * uint8: Unknown
+* * uint16: timezone positive/negative (0x0000 if positive, 0xffff if negative)
 * * uint32: uknown, always 0x000000 it seems
-* 0x04: Seemingly unused
+* * Note: It seems the app doesn't care about that, so you can just set the timestamp + all zeroes (UTC time)
+* 0x04: Seemingly unused, maybe firmware update
 * 0x05: Get battery level, tx size=0x00, return format:
 * * uint8: battery percentage
 * 0x06: Get firmware and hardware versions, tx size=0x00, return format:
@@ -128,8 +130,10 @@ I would guess that for every historic data, the brush store the time for each ar
 * * uint8: feature (0x00 = disable, 0x01 = 30s extra whitening, 0x02 = 30s gum care, 0x04 = 10s tongue cleaning)
 * * Note: the time seems to be set in 0x01 instead, this will likely only set the force
 * 0x09: Set brushing mode, tx size=0x04, format:
-* * uint32: brushing mode (0x0322013c = beginner, 0x0318013c = gentle, 0x03040150 = standard, 0x03e60032 = enhanced)
-* * Note: i suspect the uint32 to actually be the force/speed/whatever
+* * uint32: brushing mode (0x0322013c = beginner, 0x0318013c = gentle, 0x03040150 = standard, 0x03e60032 = enhanced), format:
+* * uint8: unknown, values between 1 and 5, with the app always setting 3 (-2 +2 scale?)
+* * uint16: frequency, between 000b and 018f (11 to 399hz)
+* * uint8: percentage of force, between 0x01 and 0x63 (1% to 99%)
 
 #### History entry
 
@@ -145,11 +149,6 @@ I would guess that for every historic data, the brush store the time for each ar
 
 ## TODO
 
-* Understand what the uint32 in every UART command is
-* * Seems like a weird checksum, apparently, just applying known values works, but need more research on that
-* * Seems time related, it only increase. With commands with size>0x01, it increases at the response too
-* Understand the timezone format for command 0x03 (and return of command 0x02)
 * See what command 0x04 does
-* See what's the data read from char 0x0004 after the auth
 * * Never seen it, seemingly unused...
-* Understand what **exactly** is the parameter of command 0x09
+* See the first uint4 of the history entries
