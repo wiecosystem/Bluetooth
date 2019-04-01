@@ -50,9 +50,9 @@ I would guess that for every historic data, the brush store the time for each ar
 * * Serial Number String> (uuid=00002a25-0000-1000-8000-00805f9b34fb), props=READ  handle=24
 * * Hardware Revision String> (uuid=00002a27-0000-1000-8000-00805f9b34fb), props=READ  handle=26
 * * Firmware Revision String> (uuid=00002a26-0000-1000-8000-00805f9b34fb), props=READ  handle=28
-* * System ID> (uuid=00002a23-0000-1000-8000-00805f9b34fb), props=READ  handle=30
+* * System ID (uuid=00002a23-0000-1000-8000-00805f9b34fb), props=READ  handle=30
 * Battery Service
-* * Battery Level> (uuid=00002a19-0000-1000-8000-00805f9b34fb), props=READ NOTIFY  handle=33
+* * Battery Level (uuid=00002a19-0000-1000-8000-00805f9b34fb), props=READ NOTIFY  handle=33
 * Nordic UART: uuid=6e400001-b5a3-f393-e0a9-e50e24dcca9e
 * * RX (uuid=6e400003-b5a3-f393-e0a9-e50e24dcca9e), props=NOTIFY  handle=14
 * * TX (uuid=6e400002-b5a3-f393-e0a9-e50e24dcca9e), props=WRITE NO RESPONSE WRITE  handle=17
@@ -60,15 +60,13 @@ I would guess that for every historic data, the brush store the time for each ar
 * * DFU Packet (uuid=00001532-1212-efde-1523-785feabcd123), props=WRITE NO RESPONSE  handle=37
 * * DFU Control point (uuid=00001531-1212-efde-1523-785feabcd123), props=WRITE NOTIFY  handle=39
 * * DFU Version (uuid=00001534-1212-efde-1523-785feabcd123), props=READ  handle=42
-* Custom service (uuid=0000fe95-0000-1000-8000-00805f9b34fb)
-* * Custom characteristic 1 (uuid=00000001-0000-1000-8000-00805f9b34fb), props=WRITE NOTIFY  handle=45
-* * * Suspected Authentication characteristic
-* * Custom characteristic 2 (uuid=00000002-0000-1000-8000-00805f9b34fb), props=READ  handle=48
-* * Custom characteristic 3 (uuid=00000004-0000-1000-8000-00805f9b34fb), props=READ  handle=50
-* * * Suspected Authentication activation characteristic
-* * Custom characteristic 4 (uuid=00000010-0000-1000-8000-00805f9b34fb), props=WRITE  handle=52
-* * Custom characteristic 5 (uuid=00000013-0000-1000-8000-00805f9b34fb), props=READ WRITE  handle=54
-* * Custom characteristic 6 (uuid=00000014-0000-1000-8000-00805f9b34fb), props=READ WRITE  handle=56
+* Mi service (uuid=0000fe95-0000-1000-8000-00805f9b34fb)
+* * Token characteristic (uuid=00000001-0000-1000-8000-00805f9b34fb), props=WRITE NOTIFY  handle=45
+* * Custom characteristic (uuid=00000002-0000-1000-8000-00805f9b34fb), props=READ  handle=48
+* * Firmware version characteristic (uuid=00000004-0000-1000-8000-00805f9b34fb), props=READ  handle=50
+* * Event characteristic (uuid=00000010-0000-1000-8000-00805f9b34fb), props=WRITE  handle=52
+* * Serial number characteristic (uuid=00000013-0000-1000-8000-00805f9b34fb), props=READ WRITE  handle=54
+* * Beacon key characteristic (uuid=00000014-0000-1000-8000-00805f9b34fb), props=READ WRITE  handle=56
 
 ### Custom services/chars
 
@@ -90,12 +88,10 @@ I would guess that for every historic data, the brush store the time for each ar
 * The format for commands is:
 * * uint16: id of the command
 * * uint16: size of the data
-* * uint16: TX number since init (the device doesn't seems to bother checking that)
+* * uint16: Frame number (the device doesn't seems to care much)
 * * uint16: CRC16 (CCITT-FALSE algorithm) of the first 6 bytes
 * * uint8[size]: data
-* "Set" commands receive an acknowledge with size=0x01 and data=0x00
-* * The unknown uint32 is updated when the command was sent with size>0x01
-* * Else the uint32 is the same as the tx
+* "Set" commands receive an acknowledge with size=0x01 and data=0x00 if ok, 0x01 if error
 * "Get commands" doesn't have parameters, so tx size is always = 0x00
 
 #### UART Commands
@@ -112,13 +108,10 @@ I would guess that for every historic data, the brush store the time for each ar
 * * uint16: unknown, always {0x00, 0x00}
 * 0x03: Set date/time, tx size=0x0c, format:
 * * uint32: UNIX timestamp in seconds
-* * uint4: Timezone (apparently, +x for timezones east of GMT, 15-x for timezones west of GMT)
-* * uint4: Fractions of hours flags bit 1 is +30, bit 2 is +15, bits 3 and 4 are unused
-* * uint8: Unknown
-* * uint16: timezone positive/negative (0x0000 if positive, 0xffff if negative)
+* * uint32: Offset to UTC in seconds (raw offset from the phone)
 * * uint32: uknown, always 0x000000 it seems
 * * Note: It seems the app doesn't care about that, so you can just set the timestamp + all zeroes (UTC time)
-* 0x04: Seemingly unused, maybe firmware update
+* 0x04: DFU/Firmware update, tx size=0
 * 0x05: Get battery level, tx size=0x00, return format:
 * * uint8: battery percentage
 * 0x06: Get firmware and hardware versions, tx size=0x00, return format:
@@ -126,29 +119,35 @@ I would guess that for every historic data, the brush store the time for each ar
 * * uint8[5]: hardware version, null terminated string
 * 0x07: Set anti splash protection, tx size=0x01, format:
 * * uint8: enable/disable boolean, 0x00 = disable, 0x01 = enable
+* * It's called "Crescendo" in the app, apparently, it does makes the brush go crescendo for around 10s
 * 0x08: Set additional feature, tx size=0x01, format:
 * * uint8: feature (0x00 = disable, 0x01 = 30s extra whitening, 0x02 = 30s gum care, 0x04 = 10s tongue cleaning)
 * * Note: the time seems to be set in 0x01 instead, this will likely only set the force
+* * Note: the modes are called "no", "polish", "nurse", "tongue" in the app
 * 0x09: Set brushing mode, tx size=0x04, format:
 * * uint32: brushing mode (0x0322013c = beginner, 0x0318013c = gentle, 0x03040150 = standard, 0x03e60032 = enhanced), format:
-* * uint8: unknown, values between 1 and 5, with the app always setting 3 (-2 +2 scale?)
-* * uint16: frequency, between 000b and 018f (11 to 399hz)
-* * uint8: percentage of force, between 0x01 and 0x63 (1% to 99%)
+* * uint8: motor gear, 1 to 5
+* * uint16: motor frequency, 10 to 400 / 0x0b to 0x8f (limited to 100 to 400 in the app!)
+* * uint8: motor duty cycle, 1 to 99 / 0x01 to 0x63 (in percentage)
+* * 0x0a: Bind
+* * Doesn't seems to do much
+* * 0x0b: GetID
+* * Just ask to return the ID
+* * 0x0c: SetID
+* * Just set the ID
 
 #### History entry
 
 * The history entry is a timestamp, the number of seconds and the areas brushed (per second) basically (see the uart commands for more details)
-* The samples seems to be 2 uint4: i guess force or parameter and zone
+* The fields are pressure, level and area
+* Pressure (overpressure): boolean, 1 bit
+* Level (gear usage): 0 to 3, 2 bits
+* Area: 1 to 6, 5 bits, fields:
 * * Zone 1 is up left
 * * Zone 2 is down left
 * * Zone 3 is middle up
 * * Zone 4 is middle down
 * * Zone 5 is up right
 * * Zone 6 is down right
-* * Unknown seems to be at least 0 and 4 (got both)
-
-## TODO
-
-* See what command 0x04 does
-* * Never seen it, seemingly unused...
-* See the first uint4 of the history entries
+* * All bits to 1 is undefined
+* * Every other case is "unIdentify"
