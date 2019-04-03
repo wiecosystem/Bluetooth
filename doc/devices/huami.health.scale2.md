@@ -97,6 +97,14 @@ This is the main characteristic, it gives the measurement history
 
 Notes
 * The uint32 seems to be a "device id", which is randomly chosen, so the scale can only send measurements since last check by this device (so multiple devices can query the scale and none will lose data)
+* The Mi Fit log says `{origin=01 00 00 68 c4 83 64, flag=01 , cmd=00 , code=00 , data=xx xx xx xx}`
+* Also, it has logs about these flags:
+* * type:1
+* * isMeasurement:false
+* * stable:false
+* * isHistory:false
+* * isFinish:true
+* * isImpedanceStable:false
 
 ## Scale configuration (00001542-0000-3512-2118-0009af100700)
 
