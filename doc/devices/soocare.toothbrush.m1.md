@@ -45,11 +45,11 @@ I would guess that for every historic data, the brush store the time for each ar
 * * Appearance (uuid=00002a01-0000-1000-8000-00805f9b34fb), props=READ  handle=5
 * * Peripheral Preferred Connection Parameters (uuid=00002a04-0000-1000-8000-00805f9b34fb), props=READ  handle=7
 * Device Information (uuid=0000180a-0000-1000-8000-00805f9b34fb)
-* * Manufacturer Name String> (uuid=00002a29-0000-1000-8000-00805f9b34fb), props=READ  handle=20
-* * Model Number String> (uuid=00002a24-0000-1000-8000-00805f9b34fb), props=READ  handle=2
-* * Serial Number String> (uuid=00002a25-0000-1000-8000-00805f9b34fb), props=READ  handle=24
-* * Hardware Revision String> (uuid=00002a27-0000-1000-8000-00805f9b34fb), props=READ  handle=26
-* * Firmware Revision String> (uuid=00002a26-0000-1000-8000-00805f9b34fb), props=READ  handle=28
+* * Manufacturer Name String (uuid=00002a29-0000-1000-8000-00805f9b34fb), props=READ  handle=20
+* * Model Number String (uuid=00002a24-0000-1000-8000-00805f9b34fb), props=READ  handle=2
+* * Serial Number String (uuid=00002a25-0000-1000-8000-00805f9b34fb), props=READ  handle=24
+* * Hardware Revision String (uuid=00002a27-0000-1000-8000-00805f9b34fb), props=READ  handle=26
+* * Firmware Revision String (uuid=00002a26-0000-1000-8000-00805f9b34fb), props=READ  handle=28
 * * System ID (uuid=00002a23-0000-1000-8000-00805f9b34fb), props=READ  handle=30
 * Battery Service
 * * Battery Level (uuid=00002a19-0000-1000-8000-00805f9b34fb), props=READ NOTIFY  handle=33
@@ -151,3 +151,8 @@ I would guess that for every historic data, the brush store the time for each ar
 * * Zone 6 is down right
 * * All bits to 1 is undefined
 * * Every other case is "unIdentify"
+
+## TODO
+
+* Understand the custom characteristic 00000002-0000-1000-8000-00805f9b34fb
+* Understand the format of the firmware version char

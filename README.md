@@ -12,6 +12,7 @@ Xiaomi is known to share it's logistics division with it's sub-OEMs, and also it
 * Almost every devices implement a similar (if not the same) firmware upgrade logic, there seems to have differences as some uses Nordic semiconductors' DFU service, and other seems to only mimic parts of it. I guess they started by using Nordic microchips and then expanded, and did reproduce the Nordic's DFU mode to their other devices so they still can share most of the code.
 * Some devices implement authentication, even if it's "optional" as you can still talk to the device for some time (around a minute) before it drops the connection. The authentication is encrypted using a custom JNI, "libblecipher.so". These devices seems to include the Flora plant monitor, the Soocare toothbrush, and the temperature sensor, it isn't excluded that they use the same mechanism in other devices such as the mi bands.
 * Xiaomi does have 3 16b UUIDs, but i've only seen `fe95` being used so far.
+* Huami have 2 16b UUIDs used by the mi bands: 0xFEE0 and 0xFEE1
 
 ## Devices covered
 

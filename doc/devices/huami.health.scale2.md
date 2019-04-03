@@ -1,21 +1,18 @@
 # Mi Body Composition Scale (MIBCS)
 
-## Warning
-Taken straight from MIBCS-Reverse-Engineering, this will be rewritten soon.
-
 ## Intro
-The scale communicate over BLE, with some custom UUIDs, but actually, the data is sent over ad broadcasts, that's how mi fit get it's first data, the UUIDs are mostly for history data, configuration, and the like.
+The scale communicate over BLE, with some custom UUIDs, but actually, the data is sent over ad broadcasts, that's how mi fit get it's first data, the UUIDs are mostly for data history and configuration.
 
-Xiaomi is using a java JNI (= native code library, originally written in c++) to calculate the metrics from some parameters (weight, impedance, age, height, sex). The JNI doesn't come from xiaomi, it comes from holtek, the OEM for the MCU used by the scale. holtek provide the JNI and a wrapper jar library that developpers can use to get the metrics.
+Huami is using a java JNI (= native code library, originally written in c++) to calculate the metrics from some parameters (weight, impedance, age, height, sex). The JNI doesn't come from Huami, it comes from holtek, the OEM for the MCU used by the scale. holtek provide the JNI and a wrapper jar library that developpers can use to get the metrics.
 
-Mi fit doesn't use all the data provided by the JNI though, it also sometime use or create it's own, for example, there's no protein calculation in the JNI, nor is the "body age", the "body type" or some minor data. thus they aren't here either, as the python code is derived from the reverse engineering of the JNI, not mi fit. It also doesn't use the scales provided by the JNI as it's a pretty new feature of the holtek "sdk" and xiaomi already did that before, so they didn't changed to use the JNI's scales, but continued using their own (for that reason, scale data may change between the python code and what you would see on mi fit).
+Mi fit doesn't use all the data provided by the JNI, it also sometime use or create it's own, for example, there's no protein calculation in the JNI, nor is the "body age" and the "body type". It also doesn't use the scales provided by the JNI as it's a pretty new feature of the holtek "sdk" and Huami already had that before, so they didn't changed to use the JNI's scales, but continued using their own (for that reason, scale data may change between the python code and what you would see on mi fit).
 
-## A bit of warning
-Take the informations this will give with a grain of salt, i couldn't try every case possible to be sure there's no bugs in the calculations, some are correct from mi fit, but the library mi fit uses didn't got the best way to calculate things (ideal weight), and some are guessed from mi fit, and maybe not the exact same formula (protein percentage, body type). In any case, the scale gives an indication more than an precise down to the 0.1% data.
+## Warning
+This is a best-effort reverse engineering of the library, not a scientific evaluation of the library, some data may not be ideal (ideal weight for example) and there may be some bugs.
 
-## What can it do
+## What can we do
 
-The current values body.py can calculate are:
+The current values we can calculate are:
 
 * LBM (using the impedance)
 * Fat percentage
@@ -30,12 +27,12 @@ The current values body.py can calculate are:
 * Protein percentage
 * Body type
 
-## What can't it do
+## What we cannot do
 
-The current values that cannot be calculated (because they're in mi fit and not in holtek's SDK) are:
+The current values that cannot be calculated are:
 
-* Body score (we don't really care about this)
-* Body age (we probably don't care either)
+* Body score
+* Body age
 
 ## Scales
 
@@ -50,76 +47,70 @@ As the JNI provide some scales, here's what they mean (remember, the numbers rep
 * Ideal weight: underweight/normal/overweight/obese/morbidly obese
 * BMR: unsufficient/normal
 
-## BLE protocol
+## BLE Services and Characteristics
 
-The scale use few services and descriptors, along with the usual ones, we also have
+* Generic Access (uuid=00001800-0000-1000-8000-00805f9b34fb)
+* * Device Name (uuid=00002a00-0000-1000-8000-00805f9b34fb), READ WRITE handle=3
+* * Appearance (uuid=00002a01-0000-1000-8000-00805f9b34fb), READ handle=5
+* * Peripheral Privacy Flag (uuid=00002a02-0000-1000-8000-00805f9b34fb), READ WRITE handle=7
+* * Peripheral Preferred Connection Parameters (uuid=00002a04-0000-1000-8000-00805f9b34fb), READ handle=9
+* * Reconnection Address (uuid=00002a03-0000-1000-8000-00805f9b34fb), READ WRITE NO RESPONSE WRITE handle=11
+* Generic Attribute (uuid=00001801-0000-1000-8000-00805f9b34fb)
+* * Service Changed (uuid=00002a05-0000-1000-8000-00805f9b34fb), READ INDICATE handle=14
+* Device Information (uuid=0000180a-0000-1000-8000-00805f9b34fb)
+* * Serial Number String (uuid=00002a25-0000-1000-8000-00805f9b34fb), READ handle=18
+* * Software Revision String (uuid=00002a28-0000-1000-8000-00805f9b34fb), READ handle=20
+* * Hardware Revision String (uuid=00002a27-0000-1000-8000-00805f9b34fb), READ handle=22
+* * System ID (uuid=00002a23-0000-1000-8000-00805f9b34fb), READ handle=24
+* * PnP ID (uuid=00002a50-0000-1000-8000-00805f9b34fb), READ handle=26
+* Body Composition (uuid=0000181b-0000-1000-8000-00805f9b34fb)
+* * Current Time (uuid=00002a2b-0000-1000-8000-00805f9b34fb), READ WRITE handle=29
+* * Body Composition Feature (uuid=00002a9b-0000-1000-8000-00805f9b34fb), READ handle=31
+* * Body Composition Measurement (uuid=00002a9c-0000-1000-8000-00805f9b34fb), INDICATE handle=33
+* * Body Composition History (uuid=00002a2f-0000-3512-2118-0009af100700), WRITE NOTIFY handle=36
+* Huami Configuration Service (uuid=00001530-0000-3512-2118-0009af100700)
+* * DFU Control point (uuid=00001531-0000-3512-2118-0009af100700), WRITE NOTIFY handle=40
+* * DFU Packet (uuid=00001532-0000-3512-2118-0009af100700), WRITE NO RESPONSE handle=43
+* * Peripheral Preferred Connection Parameters (uuid=00002a04-0000-1000-8000-00805f9b34fb), READ WRITE NOTIFY handle=45
+* * Scale configuration (uuid=00001542-0000-3512-2118-0009af100700), READ WRITE NOTIFY handle=48
+* * Low battery (uuid=00001543-0000-3512-2118-0009af100700), READ WRITE NOTIFY handle=51
 
-* Body composition (standard) service: 0000181b-0000-1000-8000-00805f9b34fb
-* * Current time (standard)characteristic: 00002a2b-0000-1000-8000-00805f9b34fb
-* * Body composition feature (standard) characteristic: 00002a9b-0000-1000-8000-00805f9b34fb
-* * Body composition measurement (standard) characteristic: 00002a9c-0000-1000-8000-00805f9b34fb
-* * Body measurement history (custom) characteristic: 00002a2f-0000-3512-2118-0009af100700
-* Custom service: 00001530-0000-3512-2118-0009af100700
-* * Custom characteristic 1: 00001531-0000-3512-2118-0009af100700
-* * Custom characteristic 2: 00001532-0000-3512-2118-0009af100700
-* * Preferred connection parameters (standard) characteristic: 00002a04-0000-1000-8000-00805f9b34fb
-* * Scale configuration (custom) characteristic: 00001542-0000-3512-2118-0009af100700
-* * Custom characteristic 3: 00001543-0000-3512-2118-0009af100700
+## Custom services/chars
 
-## Body composition service
+### Body Measurement History (00002a2f-0000-3512-2118-0009af100700)
 
-### Current time (00002a2b-0000-1000-8000-00805f9b34fb) read/write
+This is the main characteristic, it gives the measurement history
 
-Can be configured with `{ year_msb, year_lsb, month, day, hour, minute, second, 0x03, 0x00, 0x00}`
-(0x03 for manual time update + external reference time update, per https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.current_time.xml)
-Invalid dates are ignored.
+* uint8: command
+* uint8[]: data
 
-### Body measurement history (00002a2f-0000-3512-2118-0009af100700) write/notify
+#### Body Composition History commands/responses
 
-It seems to handle the history of measurements, as they're saved in the scale
+* 0x01: (guess) Session start
+* * uint16 (only in responses): probably confirmation, always 0x0100
+* * uint32: unknown
+* 0x02: Measurements (only in responses)
+* * The format is the same as in the advertisements, but without the first control byte
+* 0x03: Stop/End history
+* 0x04: (guess) Session end
+* * uint32: unknown, same value as in command 0x01
 
-Write format (alleged, from openscale):
-* Get only last measurement: `{0x01, 0xff, 0xff, unique_id_lsb, unique_id_msb}`
-* Get all unread measurements: `{0x01, 0xff, 0xff, 0xff, 0xff}`
-* Get history data: `{0x02}`
+Notes
+* The uint32 seems to be a "device id", which is randomly chosen, so the scale can only send measurements since last check by this device (so multiple devices can query the scale and none will lose data)
 
-I suspect that the write format is `{ command, data }` where command = 0x01 (configure history), 0x02 (get history), 0x03 (stop notifications), 0x04 (enable full history, send 0x02 after) and maybe more also.
+## Scale configuration (00001542-0000-3512-2118-0009af100700)
 
-It uses BLE notifications to send the last measurement.
-The notifications is either `{0x01, 0x01, 0x00, 0xff, 0xff, x0ff, 0xff`}, `{ raw data from measurement, same format as  the ad packets without the uuid before }` or `{0x03}` (end of history)
+That's where the scale configuration happens, for now, only the scale unit configuration is known:
 
-## Custom service
+* uint8: unknown, always 0x06 for now
+* uint8: unknown, always 0x04 for now
+* uint8: unknown, always 0x00 for now
+* uint8: weight unit: 0x00 for SI, 0x01 for imperial and 0x02 for catty
 
-Mostly unknown currently
-Called "Weight service" apparently.
+## Low Battery (00001543-0000-3512-2118-0009af100700)
 
-### Custom characteristic 1 (00001531-0000-3512-2118-0009af100700) write/notify
-
-Currently unknown, they use the same UUID for the firmware characteristic of the mi band
-Maybe used for firmware updates.
-
-### Custom characteristic 2 (00001532-0000-3512-2118-0009af100700) write/no response
-
-Currently unknown, they use the same UUID for the firmware characteristic of the mi band
-Maybe used for firmware updates.
-
-### Scale configuration (00001542-0000-3512-2118-0009af100700) read/write/notify
-
-It seems to handle the configuration of the scale, such as the unit
-
-Current known format (from openscale): `{0x06, 0x04, 0x00, weight_unit}`, where `weight_unit` = 0 for Kilogram, 1 for pounds, 2 for catty (chinese unit)
-
-Apparently, called "Control point"
-
-It gives 0x03, 0x01 when read
-
-### Custom characteristic 3 (00001543-0000-3512-2118-0009af100700) read/write/notify
-
-Currently unknown
-
-It gives 0x01, 0x00 when read 
-
-Maybe battery service, it gives 0x01, 0x01 when low battery.
+* uint8: unknown, always 0x01
+* uint8: low battery alert, 0x00 if normal, 0x01 if low battery
 
 ## Advertisement
 
@@ -157,13 +148,6 @@ Control bytes format (LSB first):
 * bit 13:  unknown (always 1 on my scale)
 * bit 14:  have impedance (impedance bytes are set correctly)
 * bit 15:  unknown
-
-Alleged control bits:
-
-* Should have a battery status bit somewhere (low battery indication)
-* Recalibration bit?
-
-
 
 ## Thanks
 
