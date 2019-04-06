@@ -25,7 +25,6 @@ Check `devices_list.csv`
 
 ## Login protocol
 
-* Note: tick lenght is always 4 bytes!
 * Enable notifications for the token characteristic && check response
 * Send `session_start` ('\x00\xbc\x43\xcd') to the event characteristic
 * Should receive some data ('challenge') in a notify from the token characteristic
@@ -38,6 +37,7 @@ Check `devices_list.csv`
 
 ## Register protocol
 
+* Note: the mac address is reversed for the mix\* functions!
 * Enable notifications for the token characteristic && check reponse
 * Send `session_start` ('\x90\xca\x85\xde') to the event characteristic
 * Create a `token` (see "Generate token" below)
