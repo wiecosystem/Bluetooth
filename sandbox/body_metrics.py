@@ -227,8 +227,14 @@ class bodyMetrics:
         return [18.5, 25, 28, 32]
 
     # Get ideal weight (just doing a reverse BMI, should be something better)
-    def getIdealWeight(self):
-        return self.checkValueOverflow((22*self.height)*self.height/10000, 5.5, 198)
+    def getIdealWeight(self, orig=True):
+        # Uses mi fit algorithm (or holtek's one)
+        if orig and self.sex == 'female':
+            return (self.height - 70) * 0.6
+        elif orig and self.sex == 'male':
+            return (self.height - 80) * 0.7
+        else:
+            return self.checkValueOverflow((22*self.height)*self.height/10000, 5.5, 198)
 
     # Get ideal weight scale (BMI scale converted to weights)
     def getIdealWeightScale(self):
@@ -246,11 +252,17 @@ class bodyMetrics:
             return {'type': 'to_lose', 'mass': mass}
 
     # Get protetin percentage (warn: guessed formula)
-    def getProteinPercentage(self):
-        proteinPercentage = 100 - (floor(self.getFatPercentage() * 100) / 100)
-        proteinPercentage -= floor(self.getWaterPercentage() * 100) / 100
-        proteinPercentage -= floor((self.getBoneMass()/self.weight*100) * 100) / 100
-        return proteinPercentage
+    def getProteinPercentage(self, orig=True):
+        # Use original algorithm from mi fit (or legacy guess one)
+        if orig:
+            proteinPercentage = (self.getMuscleMass() / self.weight) * 100
+            proteinPercentage -= self.getWaterPercentage
+        else:
+            proteinPercentage = 100 - (floor(self.getFatPercentage() * 100) / 100)
+            proteinPercentage -= floor(self.getWaterPercentage() * 100) / 100
+            proteinPercentage -= floor((self.getBoneMass()/self.weight*100) * 100) / 100
+
+        return self.checkValueOverflow(proteinPercentage, 5, 32)
 
     # Get protein scale (hardcoded in mi fit)
     def getProteinPercentageScale(self):
@@ -275,3 +287,11 @@ class bodyMetrics:
     # Return body type scale
     def getBodyTypeScale(self):
         return ['obese', 'overweight', 'thick-set', 'lack-exerscise', 'balanced', 'balanced-muscular', 'skinny', 'balanced-skinny', 'skinny-muscular']
+
+    # Get Metabolic Age
+    def getMetabolicAge(self):
+        if self.sex == 'female':
+            metabolicAge = (self.height * -1.1165) + (self.weight * 1.5784) + (self.age * 0.4615) + (self.impedance * 0.0415) + 83.2548
+            return self.checkValueOverflow(metabolicAge, 15, 80)
+        else:
+            metabolicAge = (self.height * -0.7471) + (self.weight * 0.9161) + (self.age * 0.4184) + (self.impedance * 0.0517) + 54.2267

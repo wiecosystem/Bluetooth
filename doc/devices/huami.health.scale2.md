@@ -11,7 +11,6 @@ Mi fit doesn't use all the data provided by the JNI, it also sometime use or cre
 This is a best-effort reverse engineering of the library, not a scientific evaluation of the library, some data may not be ideal (ideal weight for example) and there may be some bugs.
 
 ## What can we do
-
 The current values we can calculate are:
 
 * LBM (using the impedance)
@@ -26,16 +25,16 @@ The current values we can calculate are:
 * Fat mass to lose/gain
 * Protein percentage
 * Body type
-
-## What we cannot do
-
-The current values that cannot be calculated are:
-
-* Body score
 * Body age
 
-## Scales
+## TODO
 
+The values to be reverse engineered (but these are not a priority) are:
+
+* Body score
+* Mi fit scales
+
+## Scales
 As the JNI provide some scales, here's what they mean (remember, the numbers represent the transition between two!):
 
 * Fat percentage: very low/low/normal/high/very high
@@ -48,7 +47,6 @@ As the JNI provide some scales, here's what they mean (remember, the numbers rep
 * BMR: unsufficient/normal
 
 ## BLE Services and Characteristics
-
 * Generic Access (uuid=00001800-0000-1000-8000-00805f9b34fb)
 * * Device Name (uuid=00002a00-0000-1000-8000-00805f9b34fb), READ WRITE handle=3
 * * Appearance (uuid=00002a01-0000-1000-8000-00805f9b34fb), READ handle=5
@@ -73,55 +71,58 @@ As the JNI provide some scales, here's what they mean (remember, the numbers rep
 * * DFU Packet (uuid=00001532-0000-3512-2118-0009af100700), WRITE NO RESPONSE handle=43
 * * Peripheral Preferred Connection Parameters (uuid=00002a04-0000-1000-8000-00805f9b34fb), READ WRITE NOTIFY handle=45
 * * Scale configuration (uuid=00001542-0000-3512-2118-0009af100700), READ WRITE NOTIFY handle=48
-* * Low battery (uuid=00001543-0000-3512-2118-0009af100700), READ WRITE NOTIFY handle=51
+* * Battery (uuid=00001543-0000-3512-2118-0009af100700), READ WRITE NOTIFY handle=51
 
 ## Custom services/chars
 
 ### Body Measurement History (00002a2f-0000-3512-2118-0009af100700)
-
 This is the main characteristic, it gives the measurement history
+The device id is randomly chosen at first start of mi fit, the scale keep track of where each device is so it doesn't send all the data each time, and don't skip any data either
 
-* uint8: command
-* uint8[]: data
+#### Get data size
 
-#### Body Composition History commands/responses
+Send 0x01 [device id]
+Si no response or response lenght is less than 3 or reponse[0] it not 1, send 0x03
+Data size = response[1] and response[2], send 0x03 to end
 
-* 0x01: (guess) Session start
-* * uint16 (only in responses): probably confirmation, always 0x0100
-* * uint32: unknown
-* 0x02: Measurements (only in responses)
-* * The format is the same as in the advertisements, but without the first control byte
-* 0x03: Stop/End history
-* 0x04: (guess) Session end
-* * uint32: unknown, same value as in command 0x01
+#### Get data
 
-Notes
-* The uint32 seems to be a "device id", which is randomly chosen, so the scale can only send measurements since last check by this device (so multiple devices can query the scale and none will lose data)
-* The Mi Fit log says `{origin=01 00 00 68 c4 83 64, flag=01 , cmd=00 , code=00 , data=xx xx xx xx}`
-* Also, it has logs about these flags:
-* * type:1
-* * isMeasurement:false
-* * stable:false
-* * isHistory:false
-* * isFinish:true
-* * isImpedanceStable:false
+Register to notifications and send 0x02
+Get all notifications and send 0x03 at the end
+Each notifications should have the same data as the advertisements
+If you have as much data as indicated by the get data size command, send 0x04 [device id] to update your history position
+If registering to notifications or sending the 0x02 failed, send 0x03 anyway
 
-## Scale configuration (00001542-0000-3512-2118-0009af100700)
+### Scale configuration (00001542-0000-3512-2118-0009af100700)
 
-That's where the scale configuration happens, for now, only the scale unit configuration is known:
+There's several commands there, but nothing really special. No idea what's the "one foot measure" but it seems useless.
 
-* uint8: unknown, always 0x06 for now
-* uint8: unknown, always 0x04 for now
-* uint8: unknown, always 0x00 for now
-* uint8: weight unit: 0x00 for SI, 0x01 for imperial and 0x02 for catty
+#### Set unit
+Send 0x06 0x04 0x00 [unit] where [unit] is 0x00 for SI, 0x01 for imperial and 0x02 for catty
 
-## Low Battery (00001543-0000-3512-2118-0009af100700)
+#### Enable Partial measures
+Send 0x06 0x10 0x00 [!enable] and you should receive a response that is 0x16 0x06 0x10 0x00 0x01
 
-* uint8: unknown, always 0x01
-* uint8: low battery alert, 0x00 if normal, 0x01 if low battery
+#### Erase history record
+Send 0x06 0x12 0x00 0x00, you should receive a response that is 0x16 0x06 0x12 0x00 0x01
+
+#### Start One Foot Measure
+Register to notifications and send 0x06 0x0f 0x00 0x00
+You should get a notification like 0x06 0x0f 0x00 [flags] [time]\*2
+The only known flags are finished (0x02) and measuring (0x01)
+Time is inverted (time = (time[1] << 8) | time[0]) and multiplied by 100
+This feature seems pretty useless
+
+#### Stop One Foot Measure
+Send 0x06 0x11 0x00 0x00
+
+### Date and time (00002a2b-0000-1000-8000-00805f9b34fb)
+You can read and write it, format: year[0], year[1], month, day, hour, min, sec, 0x00, 0x00
+
+### Low Battery (00001543-0000-3512-2118-0009af100700)
+Two uint8, if both equals 0x01, then it's a low battery alert, simple as that.
 
 ## Advertisement
-
 The scale also works using advertisement packets, with a adType 0xff (OEM data) that is unknown yet, and a adType 0x16 (Service Data) that have this format:
 
 Data is 17 bytes long, with the first 4 bytes being an UUID, the other 13 bytes are the payload
@@ -140,23 +141,22 @@ Payload format (year, impedance and weight are little endian):
 
 Control bytes format (LSB first):
 
-* bit 0:   unknown
-* bit 1:   unknown
-* bit 2:   unknown
-* bit 3:   unknown
-* bit 4:   unknown
-* bit 5:   unknown
-* bit 6:   unknown (always 1 on my scale)
-* bit 7:   is pounds
-* bit 8:   is empty load (no weight on scale)
-* bit 9:   is catty
-* bit 10:  is stabilized (weight confirmed, that's also when the weight on scale blinks)
-* bit 11:  unknown
-* bit 12:  unknown
-* bit 13:  unknown (always 1 on my scale)
-* bit 14:  have impedance (impedance bytes are set correctly)
-* bit 15:  unknown
+* bit 0:   unused
+* bit 1:   unused
+* bit 2:   unused
+* bit 3:   unused
+* bit 4:   unused
+* bit 5:   partial data
+* bit 6:   unused
+* bit 7:   weight sent in pounds
+* bit 8:   finished (is there any load on the scale)
+* bit 9:   weight sent in catty
+* bit 10:  weight stabilised
+* bit 11:  unused
+* bit 12:  unused
+* bit 13:  unused
+* bit 14:  impedance stabilized
+* bit 15:  unused
 
 ## Thanks
-
 KailoKyra for his help, Hopper and Radare2/Cutter, shell-storm.org, gregstoll.com, openscale (and oliexdev for his knowledge), Wingjam (on github), and the poor souls who posted the JAR and some JNIs of holtek's SDK.
