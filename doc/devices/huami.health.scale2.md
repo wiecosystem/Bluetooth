@@ -75,6 +75,14 @@ As the JNI provide some scales, here's what they mean (remember, the numbers rep
 
 ## Custom services/chars
 
+### Body Composition Feature (00002a9b-0000-1000-8000-00805f9b34fb)
+Apparently not used
+
+### Body Composition Measurement (00002a9c-0000-1000-8000-00805f9b34fb)
+It is used as notifications
+
+If notified, you'll receive the same weight data as in advertisements
+
 ### Body Measurement History (00002a2f-0000-3512-2118-0009af100700)
 This is the main characteristic, it gives the measurement history
 The device id is randomly chosen at first start of mi fit, the scale keep track of where each device is so it doesn't send all the data each time, and don't skip any data either
@@ -106,6 +114,21 @@ Send 0x06 0x10 0x00 [!enable] and you should receive a response that is 0x16 0x0
 #### Erase history record
 Send 0x06 0x12 0x00 0x00, you should receive a response that is 0x16 0x06 0x12 0x00 0x01
 
+#### Enable LED display
+Send 0x04 0x02 to enable, 0x04 0x03 to disable
+
+#### Calibrate
+Send 0x06 0x05 0x00 0x00
+
+#### Self test
+Send 0x04 0x01 to enable 0x04 0x04 to disable
+
+### Set Sandglass Mode
+Send 0x06 [mode] 0x00 where mode is an uint16 that equals 0x000A or 0x000B
+
+### Get Sandglass Mode
+Read and if mode is set, it is equal to 0x03 0x00
+
 #### Start One Foot Measure
 Register to notifications and send 0x06 0x0f 0x00 0x00
 You should get a notification like 0x06 0x0f 0x00 [flags] [time]\*2
@@ -119,7 +142,7 @@ Send 0x06 0x11 0x00 0x00
 ### Date and time (00002a2b-0000-1000-8000-00805f9b34fb)
 You can read and write it, format: year[0], year[1], month, day, hour, min, sec, 0x00, 0x00
 
-### Low Battery (00001543-0000-3512-2118-0009af100700)
+### Battery (00001543-0000-3512-2118-0009af100700)
 Two uint8, if both equals 0x01, then it's a low battery alert, simple as that.
 
 ## Advertisement
