@@ -27,11 +27,12 @@ class bodyScore:
         score -= self.getVisceralFatDeductScore()
         score -= self.getBoneDeductScore()
         score -= self.getBasalMetabolismDeductScore()
-        score -= self.getProteinDeductScore()
+        if self.protein:
+            score -= self.getProteinDeductScore()
         return score
 
-    def calculate(self, data, a, b, c, d):
-        result = ((data - b) / (a - b)) * float(c - d)
+    def getMalus(self, data, min_data, max_data, max_malus, min_malus):
+        result = ((data - max_data) / (min_data - max_data)) * float(max_malus - min_malus)
         if result >= 0.0:
             return result
         return 0.0
@@ -41,123 +42,115 @@ class bodyScore:
             # "BMI is not reasonable
             return 0.0
 
-        arr = [14.0, 15.0]
-        normalfat = self.scales.getFatPercentageScale()
+        bmi_low = 15.0
+        bmi_verylow = 14.0
+        bmi_normal = 18.5
+        bmi_overweight = 28.0
+        bmi_obese = 32.0
+        fat_scale = self.scales.getFatPercentageScale()
 
         # Perfect range (bmi >= 18.5 and bodyfat not high for adults, bmi >= 15.0 for kids
-        if self.bmi >= 18.5 and self.age >= 18 and self.bodyfat < normalfat[2]:
+        if self.bmi >= 18.5 and self.age >= 18 and self.bodyfat < fat_scale[2]:
             return 0.0
-        if self.bmi >= arr[1] and self.age < 18 and self.bodyfat < normalfat[2]:
+        elif self.bmi >= bmi_verylow and self.age < 18 and self.bodyfat < fat_scale[2]:
             return 0.0
-        # Deadly skinny
-        elif self.bmi <= arr[0]:
-            return 30.0
-        else:
-            # Too skinny
-            if self.bmi > arr[0] and self.bmi < arr[1]:
-                return self.calculate(self.bmi, arr[0], arr[1], 30, 15) + 15.0
-            # Low but not too skinny
-            if self.bmi >= arr[1] and self.bmi < 18.5 and self.age >= 18:
-                return self.calculate(self.bmi, 15.0, 18.5, 15, 5) + 5.0
 
-            # Normal or high bmi but too much bodyfat
-            if self.bmi >= arr[1] and self.bodyfat >= normalfat[2]:
-                if self.bmi >= 32.0:
-                    return 10.0
-                if self.bmi > 28.0:
-                    return self.calculate(self.bmi, 28.0, 25.0, 5, 10) + 5.0
-                else:
-                    return 0.0
+        # Extremely skinny (bmi < 14)
+        elif self.bmi <= bmi_verylow:
+            return 30.0
+        # Too skinny (bmi between 14 and 15)
+        elif self.bmi > bmi_verylow and self.bmi < bmi_low:
+            return self.getMalus(self.bmi, bmi_verylow, bmi_low, 30, 15) + 15.0
+        # Skinny (for adults, between 15 and 18.5)
+        elif self.bmi >= bmi_low and self.bmi < bmi_normal and self.age >= 18:
+            return self.getMalus(self.bmi, 15.0, 18.5, 15, 5) + 5.0
+
+        # Normal or high bmi but too much bodyfat
+        elif ((self.bmi >= bmi_low and self.age < 18) or (self.bmi >= bmi_normal and self.age >= 18)) and self.bodyfat >= fat_scale[2]:
+            # Obese
+            if self.bmi >= bmi_obese:
+                return 10.0
+            # Overweight
+            if self.bmi > bmi_overweight:
+                return self.getMalus(self.bmi, 28.0, 25.0, 5, 10) + 5.0
+            else:
+                return 0.0
 
     def getBodyFatDeductScore(self):
-        normal = self.scales.getFatPercentageScale()
+        scale = self.scales.getFatPercentageScale()
 
-        best = 0.0
         if self.sex == 'male':
-            best = normal[2] - 3.0
+            best = scale[2] - 3.0
         elif self.sex == 'female':
-            best = normal[2] - 2.0
-
+            best = scale[2] - 2.0
 
         # Slighly low in fat or low part or normal fat
-        if self.bodyfat >= normal[0] and self.bodyfat < best:
+        if self.bodyfat >= scale[0] and self.bodyfat < best:
             return 0.0
-        elif self.bodyfat >= normal[3]:
+        elif self.bodyfat >= scale[3]:
             return 20.0
         else:
             # Sightly high body fat
-            if self.bodyfat < normal[3]:
-                return self.calculate(self.bodyfat, normal[3], normal[2], 20, 10) + 10.0
+            if self.bodyfat < scale[3]:
+                return self.getMalus(self.bodyfat, scale[3], scale[2], 20, 10) + 10.0
+
             # High part of normal fat
             elif self.bodyfat <= normal[2]:
-                return self.calculate(self.bodyfat, normal[2], best, 3, 9) + 3.0
+                return self.getMalus(self.bodyfat, scale[2], best, 3, 9) + 3.0
+
             # Very low in fat
             elif self.bodyfat < normal[0]:
-                return self.calculate(self.bodyfat, 1.0, normal[0], 3, 10) + 3.0
+                return self.getMalus(self.bodyfat, 1.0, scale[0], 3, 10) + 3.0
 
 
     def getMuscleDeductScore(self):
-        normal = self.scales.getMuscleMassScale()
+        scale = self.scales.getMuscleMassScale()
 
         # For some reason, there's code to return self.calculate(muscle, normal[0], normal[0]+2.0, 3, 5) + 3.0
         # if your muscle is between normal[0] and normal[0] + 2.0, but it's overwritten with 0.0 before return
-        if self.muscle >= normal[0]:
+        if self.muscle >= scale[0]:
             return 0.0
-        elif self.muscle < (normal[0] - 5.0):
+        elif self.muscle < (scale[0] - 5.0):
             return 10.0
         else:
-            return self.calculate(self.muscle, normal[0] - 5.0, normal[0], 10, 5) + 5.0
+            return self.getMalus(self.muscle, scale[0] - 5.0, scale[0], 10, 5) + 5.0
 
     # No malus = normal or good; maximum malus (10.0) = less than normal-5.0;
     # malus = between 5 and 10, on your water being between normal-5.0 and normal
     def getWaterDeductScore(self):
-        normal = self.scales.getWaterPercentageScale()
+        scale = self.scales.getWaterPercentageScale()
 
-        if self.water >= normal[0]:
+        if self.water >= scale[0]:
             return 0.0
-        elif self.water <= (normal[0] - 5.0):
+        elif self.water <= (scale[0] - 5.0):
             return 10.0
         else:
-            return self.calculate(self.water, normal[0] - 5.0, normal[0], 10, 5) + 5.0
+            return self.getMalus(self.water, scale[0] - 5.0, scale[0], 10, 5) + 5.0
 
     # No malus = normal; maximum malus (15.0) = very high; malus = between 10 and 15
     # with your visceral fat in your high range
     def getVisceralFatDeductScore(self):
-        normal = self.scales.getVisceralFatScale()
+        scale = self.scales.getVisceralFatScale()
 
-        if self.visceral_fat < normal[0]:
+        if self.visceral_fat < scale[0]:
             # For some reason, the original app would try to
             # return 3.0 if vfat == 8 and 5.0 if vfat == 9
             # but i's overwritten with 0.0 anyway before return
             return 0.0
-        elif self.visceral_fat >= normal[1]:
+        elif self.visceral_fat >= scale[1]:
             return 15.0
         else:
-            return self.calculate(self.visceral_fat, normal[1], normal[0], 15, 10) + 10.0
+            return self.getMalus(self.visceral_fat, scale[1], scale[0], 15, 10) + 10.0
 
     def getBoneDeductScore(self):
-        normal = []
-        if self.sex == 'male':
-            if self.weight < 60.0:
-                normal = [1.6, 3.9]
-            elif self.weight < 75.0:
-                normal = [1.9, 4.1]
-            else:
-                normal = [2.0, 4.2]
-        elif self.sex == 'female':
-            if self.weight < 45.0:
-                normal = [1.3, 3.6]
-            elif self.weight < 60.0:
-                normal = [1.5, 3.8]
-            else:
-                normal: [1.8, 3.9]
+        scale = self.scales.getBoneMassScale()
 
-        if self.bone >= normal[0]:
+        if self.bone >= scale[0]:
             return 0.0
-        elif self.bone <= (normal[0] - 0.3):
+        elif self.bone <= (scale[0] - 0.3):
             return 10.0
         else:
-            return self.calculate(self.bone, normal[0] - 0.3, normal[0], 10, 5) + 5.0
+            return self.getMalus(self.bone, scale[0] - 0.3, scale[0], 10, 5) + 5.0
 
     def getBasalMetabolismDeductScore(self):
         # Get normal BMR
@@ -169,14 +162,12 @@ class bodyScore:
             return 6.0
         else:
             # It's really + 5.0 in the app, but it's probably a mistake, should be 3.0
-            return self.calculate(self.basal_metabolism, normal - 300, normal, 6, 3) + 5.0
+            return self.getMalus(self.basal_metabolism, normal - 300, normal, 6, 3) + 5.0
 
 
     # Get protein percentage malus
     def getProteinDeductScore(self):
         # low: 10,16; normal: 16,17
-        # Check age or return 0
-
         # Check limits
         if self.protein > 17.0:
             return 0.0
@@ -185,6 +176,6 @@ class bodyScore:
         else:
             # Return values for low proteins or normal proteins
             if self.protein <= 16.0:
-                return self.calculate(self.protein, 10.0, 16.0, 10, 5) + 5.0
+                return self.getMalus(self.protein, 10.0, 16.0, 10, 5) + 5.0
             elif self.protein <= 17.0:
-                return self.calculate(self.protein, 16.0, 17.0, 5, 3) + 3.0
+                return self.getMalus(self.protein, 16.0, 17.0, 5, 3) + 3.0
