@@ -20,19 +20,21 @@ The current values we can calculate are:
 * Muscle mass
 * Visceral fat
 * BMI
-* BMR
+* BMR (basal metabolism)
 * Ideal weight
 * Fat mass to lose/gain
 * Protein percentage
 * Body type
 * Body age
+* Body Score
+* Scales used in Mi Fit and in the native SDK
 
-## TODO
+## Body Score
 
-The values to be reverse engineered (but these are not a priority) are:
+The body score is basically 100 - malus, where malus is the sum of a sub-score computed for every data point (bmi, muscle mass, fat percentage, etc).
+Each score is mostly based on the scales (where "normal" or "good" gives no malus, being way over the limits gives you maximum malus, and being in between gives you a variable malus), but sometime, it's even more precise than the scales (for example, for body fat, even being "normal" is not enough, you need to be in the first half of "normal", or even "low").
+You can refer to `body_score.py` if you want more details on the algorithms.
 
-* Body score
-* Mi fit scales
 
 ## Scales
 As the JNI provide some scales, here's what they mean (remember, the numbers represent the transition between two!):
