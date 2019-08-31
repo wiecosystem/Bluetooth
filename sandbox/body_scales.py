@@ -143,3 +143,10 @@ class bodyScales:
         for bmiScale in self.getBMIScale():
             scale.append((bmiScale*self.height)*self.height/10000)
         return scale
+
+    # Get Body Score scale
+    def getBodyScoreScale(self):
+        # very bad, bad, normal, good, better
+        return [50.0, 60.0, 80.0, 90.0]
+
+
