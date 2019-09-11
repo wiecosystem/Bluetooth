@@ -209,6 +209,6 @@ class bodyMetrics:
     def getMetabolicAge(self):
         if self.sex == 'female':
             metabolicAge = (self.height * -1.1165) + (self.weight * 1.5784) + (self.age * 0.4615) + (self.impedance * 0.0415) + 83.2548
-            return self.checkValueOverflow(metabolicAge, 15, 80)
         else:
             metabolicAge = (self.height * -0.7471) + (self.weight * 0.9161) + (self.age * 0.4184) + (self.impedance * 0.0517) + 54.2267
+        return self.checkValueOverflow(metabolicAge, 15, 80)

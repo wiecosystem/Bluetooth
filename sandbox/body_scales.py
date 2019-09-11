@@ -149,4 +149,6 @@ class bodyScales:
         # very bad, bad, normal, good, better
         return [50.0, 60.0, 80.0, 90.0]
 
-
+    # Return body type scale
+    def getBodyTypeScale(self):
+        return ['obese', 'overweight', 'thick-set', 'lack-exerscise', 'balanced', 'balanced-muscular', 'skinny', 'balanced-skinny', 'skinny-muscular'
