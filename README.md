@@ -14,21 +14,25 @@ Xiaomi is known to share it's logistics division with it's sub-OEMs, and also it
 * Xiaomi does have 3 16b UUIDs, but i've only seen `fe95` being used so far.
 * Huami have 2 16b UUIDs used by the mi bands: 0xFEE0 and 0xFEE1
 
-## Devices covered
+## Devices covered (Aka. what's coming sooner or later)
 
 If you have a xiaomi ecosystem device and did reverse engineer it, feel free to contribute. For now, for obvious reasons, i'll focus on some devices i already own:
 
-| Device name                  | Device ID                  | Documentation                                      | Status             |
-|------------------------------|----------------------------|----------------------------------------------------|--------------------|
-| Mi Body Composition Scale    | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.scale2.md)          | Mostly documented  |
-| Mi toothbrush                | `soocare.toothbrush.m1`    | [Doc](doc/devices/soocare.toothbrush.m1.md)        | Mostly documented  |
-| Yeelight bedside lamp        | `yeelight.light.ble1`      | [Doc](doc/devices/yeelight.light.ble1.md)          | TODO               |
-| Mi Kettle V1                 | `yunmi.kettle.v1`          | [Doc](doc/devices/yunmi.kettle.v1.md)              | TODO               |
-| Temperature/Humidity sensor  | `cleargrass.sensor_ht.dk1` | [Doc](doc/devices/cleargrass.sensor_ht.dk1.md)     | TODO               |
-| Flora plant monitor          | `hhcc.plantmonitor.v1`     | [Doc](doc/devices/hhcc.plantmonitor.v1.md)         | TODO               |
-| Mi Band 1                    | `xiaomi.watch.band1        | [Doc](doc/devices/xiaomi.watch.band1.md)           | TODO               |
+| Device name                          | Device ID                  | Documentation                                      | Status             |
+|--------------------------------------|----------------------------|----------------------------------------------------|--------------------|
+| Mi Body Composition Scale            | `huami.health.scale2`\*    | [Doc](doc/devices/huami.health.scale2.md)          | Done               |
+| Mi toothbrush                        | `soocare.toothbrush.m1`    | [Doc](doc/devices/soocare.toothbrush.m1.md)        | Done               |
+| Yeelight Bedside lamp                | `yeelink.light.ble1`       | [Doc](doc/devices/yeelink.light.ble1.md)           | TODO               |
+| Mi LED Desk lamp                     | `yeelink.light.lamp1`      | [Doc](doc/devices/yeelink.light.lamp1.md)          | TODO               |
+| Yeelight Candela                     | `yeelink.light.mb2grp`     | [Doc](doc/devices/yeelink.light.mb2grp.md)         | TODO               |
+| Mi Kettle V1                         | `yunmi.kettle.v1`          | [Doc](doc/devices/yunmi.kettle.v1.md)              | TODO               |
+| Temperature/Humidity sensor          | `cleargrass.sensor_ht.dk1` | [Doc](doc/devices/cleargrass.sensor_ht.dk1.md)     | WIP                |
+| Flora plant monitor                  | `hhcc.plantmonitor.v1`     | [Doc](doc/devices/hhcc.plantmonitor.v1.md)         | TODO               |
+| Mi Band 1                            | `xiaomi.watch.band1`       | [Doc](doc/devices/xiaomi.watch.band1.md)           | TODO               |
+| Mi Band 2                            | `xiaomi.watch.band2`       | [Doc](doc/devices/xiaomi.watch.band2.md)           | TODO               |
+| iHealth Track Blood Pressure Monitor | `ihealth.bp.550bt`         | [Doc](doc/devices/ihealth.bp.550bt.md)             | WIP                |
 
-\* Not sure about this one, it isn't in mi home, but only in mi fit
+\* Guesstimate, it isn't in mi home, but in some other app, of the ecosysteme or OEM's one
 
 ## And for other protocols?
 
